@@ -1,6 +1,8 @@
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef struct {
     float x, y;
@@ -14,6 +16,21 @@ Particle create_particle(float x, float y, float vx, float vy) {
     p.vx = vx;
     p.vy = vy;
     return p;
+}
+
+Particle * create_particles(int N) {
+    Particle *particles;
+    particles = (Particle *) malloc(N * sizeof(Particle));
+    if (!particles) {
+        fprintf(stderr, "Failed to allocate memory for particles\n");
+        exit(1);
+    }
+
+    for (int i = 0; i < N; ++i) {
+        particles[i] = create_particle((float)i / N * 2.0f - 1.0f, 0.9f, 0.0f, 0.0f); 
+    }
+
+    return particles;
 }
 
 void update_particle(Particle* p, float dt) {
@@ -61,27 +78,29 @@ int main() {
 
     glfwSetKeyCallback(window, key_callback);
 
+    int numberOfParticles = 5;
+    Particle *particles = create_particles(numberOfParticles);
+
     glPointSize(5.0f); 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
-
-    Particle p = create_particle(0.0f, 0.9f, 0.0f, 0.0f);
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         float dt = 0.01f; 
-        update_particle(&p, dt);
 
-        draw_particle(&p);
+        for (int i = 0; i < numberOfParticles; ++i) {
+            update_particle(&particles[i], dt);
+            draw_particle(&particles[i]);
+        }
 
         glfwSwapBuffers(window);
-
         glfwPollEvents();
     }
 
+    free(particles);
     glfwDestroyWindow(window);
     glfwTerminate();
 
     return 0;
 }
-
